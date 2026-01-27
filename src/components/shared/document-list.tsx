@@ -142,7 +142,7 @@ export function DocumentList({ patientId }: DocumentListProps) {
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-semibold text-gray-900 truncate">{doc.file_name}</h4>
                                 <div className="flex items-center gap-3 mt-1">
-                                    <span className="text-xs text-gray-500">{formatSize(doc.file_size_bytes)}</span>
+                                    <span className="text-xs text-gray-500">{formatSize(doc.file_size_bytes || 0)}</span>
                                     <span className="text-gray-300 text-xs">•</span>
                                     <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 capitalize border-gray-100 text-gray-600">
                                         {doc.category}
