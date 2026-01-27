@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import Link from 'next/link';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -80,13 +81,11 @@ export default function LoginPage() {
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                                 Password
                             </label>
-                            <input
+                            <PasswordInput
                                 id="password"
-                                type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="••••••••"
                             />
                             <div className="flex justify-end mt-1">
