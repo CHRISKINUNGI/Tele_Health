@@ -21,7 +21,7 @@ A comprehensive telehealth platform for managing hybrid (in-person and remote) p
 ### 1. Clone and Install
 
 ```bash
-cd /home/eightex/.gemini/antigravity/scratch/telehealth-portal
+cd Into the Repo
 npm install
 ```
 
