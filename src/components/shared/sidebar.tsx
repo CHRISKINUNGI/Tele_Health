@@ -14,7 +14,8 @@ import {
     Activity,
     ClipboardList,
     BarChart3,
-    Bell
+    Bell,
+    Receipt
 } from 'lucide-react';
 import { NotificationBell } from './notification-bell';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ export function Sidebar({ userRole, userId, userName, userDetails }: SidebarProp
                     { href: '/provider/appointments', label: 'Appointments', icon: Calendar },
                     { href: '/provider/patients', label: 'Patients', icon: Users },
                     { href: '/provider/notes', label: 'Clinical Notes', icon: FileText },
+                    { href: '/provider/billing', label: 'Billing', icon: Receipt },
                 ];
             case 'patient':
                 return [
@@ -46,6 +48,7 @@ export function Sidebar({ userRole, userId, userName, userDetails }: SidebarProp
                     { href: '/patient/appointments', label: 'My Appointments', icon: Calendar },
                     { href: '/patient/records', label: 'Medical Records', icon: FileText },
                     { href: '/patient/documents', label: 'Documents', icon: ClipboardList },
+                    { href: '/patient/billing', label: 'Billing', icon: Receipt },
                 ];
             case 'admin':
                 return [
