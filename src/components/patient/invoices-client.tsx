@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Receipt, Loader2 } from 'lucide-react';
-import { getPatientInvoices } from '@/lib/actions/invoices';
+import { Button } from '@/components/ui/button';
+import { Receipt, Loader2, Download, CreditCard } from 'lucide-react';
+import { getPatientInvoices, payInvoice } from '@/lib/actions/invoices';
 import { formatKes } from '@/lib/utils/currency';
+import { downloadInvoice } from '@/lib/utils/invoice-document';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Invoice } from '@/lib/types';
@@ -16,6 +18,23 @@ interface PatientInvoicesClientProps {
 export function PatientInvoicesClient({ patientId }: PatientInvoicesClientProps) {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
+    const [paying, setPaying] = useState<string | null>(null);
+
+    const handlePay = async (invoice: Invoice) => {
+        setPaying(invoice.id);
+        try {
+            await payInvoice(invoice.id);
+            setInvoices((prev) =>
+                prev.map((i) => (i.id === invoice.id ? { ...i, status: 'paid' } : i))
+            );
+            toast.success('Payment recorded');
+        } catch (error) {
+            console.error('Error paying invoice:', error);
+            toast.error('Could not record payment');
+        } finally {
+            setPaying(null);
+        }
+    };
 
     useEffect(() => {
         (async () => {
@@ -69,7 +88,7 @@ export function PatientInvoicesClient({ patientId }: PatientInvoicesClientProps)
             <div className="space-y-3">
                 {invoices.map((invoice) => (
                     <Card key={invoice.id} className="border-gray-200">
-                        <CardContent className="p-5 flex items-center justify-between gap-4">
+                        <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="min-w-0">
                                 <p className="font-semibold text-gray-900 truncate">
                                     {invoice.description || 'Consultation'}
@@ -86,7 +105,7 @@ export function PatientInvoicesClient({ patientId }: PatientInvoicesClientProps)
                                     {format(new Date(invoice.created_at), 'PP')}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-4 shrink-0">
+                            <div className="flex items-center gap-3 shrink-0">
                                 <span className="font-bold text-gray-900">{formatKes(invoice.amount)}</span>
                                 {invoice.status === 'paid' ? (
                                     <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-0.5 text-xs font-medium">
@@ -96,6 +115,30 @@ export function PatientInvoicesClient({ patientId }: PatientInvoicesClientProps)
                                     <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 px-2.5 py-0.5 text-xs font-medium">
                                         Unpaid
                                     </span>
+                                )}
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1.5"
+                                    onClick={() => downloadInvoice(invoice)}
+                                >
+                                    <Download className="h-3.5 w-3.5" />
+                                    Download
+                                </Button>
+                                {invoice.status === 'unpaid' && (
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5 bg-blue-600 hover:bg-blue-700"
+                                        onClick={() => handlePay(invoice)}
+                                        disabled={paying === invoice.id}
+                                    >
+                                        {paying === invoice.id ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <CreditCard className="h-3.5 w-3.5" />
+                                        )}
+                                        Pay now
+                                    </Button>
                                 )}
                             </div>
                         </CardContent>

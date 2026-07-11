@@ -8,6 +8,7 @@ import { AdminSettings } from '@/components/admin/admin-settings';
 import { AdminAnalytics } from '@/components/admin/admin-analytics';
 import { UserManagement } from '@/components/admin/user-management';
 import { SystemHealth } from '@/components/admin/system-health';
+import { AdminInvoicesPanel } from '@/components/admin/invoices-panel';
 import { getFlaggedQueueEntries, getDoctorLoads } from '@/lib/actions/queue';
 import { getSystemAnalytics } from '@/lib/actions/analytics';
 import { getAllProfiles } from '@/lib/actions/profiles';
@@ -15,7 +16,7 @@ import { reassignAppointment } from '@/lib/actions/appointments';
 import { useRealtimeQueue } from '@/hooks/use-realtime-queue';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LayoutDashboard, Users, Settings, Activity, BarChart3, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, Activity, BarChart3, ShieldCheck, Receipt } from 'lucide-react';
 import type { QueueEntry } from '@/lib/types';
 
 export function AdminDashboard() {
@@ -153,6 +154,10 @@ export function AdminDashboard() {
                             <Users className="h-4 w-4" />
                             Users
                         </TabsTrigger>
+                        <TabsTrigger value="billing" className="gap-2 px-6 rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                            <Receipt className="h-4 w-4" />
+                            Billing
+                        </TabsTrigger>
                         <TabsTrigger value="health" className="gap-2 px-6 rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                             <ShieldCheck className="h-4 w-4" />
                             System Health
@@ -208,6 +213,10 @@ export function AdminDashboard() {
 
                     <TabsContent value="users" className="space-y-4 outline-none">
                         <UserManagement profiles={profiles} />
+                    </TabsContent>
+
+                    <TabsContent value="billing" className="space-y-4 outline-none">
+                        <AdminInvoicesPanel />
                     </TabsContent>
 
                     <TabsContent value="health" className="space-y-4 outline-none">

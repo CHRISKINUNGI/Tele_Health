@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Receipt, Loader2, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Receipt, Loader2, CheckCircle2, RotateCcw, Download } from 'lucide-react';
 import { getDoctorInvoices, setInvoiceStatus } from '@/lib/actions/invoices';
 import { formatKes } from '@/lib/utils/currency';
+import { downloadInvoice } from '@/lib/utils/invoice-document';
 import { CreateInvoiceDialog } from './create-invoice-dialog';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -88,6 +89,15 @@ export function DoctorInvoicesClient({ doctorId, defaultAmount }: DoctorInvoices
                                         {formatKes(invoice.amount)}
                                     </span>
                                     <StatusBadge status={invoice.status} />
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5"
+                                        onClick={() => downloadInvoice(invoice)}
+                                    >
+                                        <Download className="h-3.5 w-3.5" />
+                                        Download
+                                    </Button>
                                     <Button
                                         size="sm"
                                         variant="outline"

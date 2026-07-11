@@ -56,6 +56,7 @@ export function Sidebar({ userRole, userId, userName, userDetails }: SidebarProp
                     { href: '/admin?tab=analytics', label: 'Analytics', icon: BarChart3 },
                     { href: '/admin?tab=reassignment', label: 'Appointments', icon: Calendar },
                     { href: '/admin?tab=users', label: 'Users', icon: Users },
+                    { href: '/admin?tab=billing', label: 'Billing', icon: Receipt },
                     { href: '/admin?tab=health', label: 'System Health', icon: Activity },
                 ];
             default:
