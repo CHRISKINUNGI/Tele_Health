@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 export async function updateUserProfile(userData: {
     name: string;
     specialization?: string;
+    consultationFee?: number | null;
 }) {
     const supabase = await createClient();
 
@@ -19,7 +20,8 @@ export async function updateUserProfile(userData: {
         .from('profiles')
         .update({
             name: userData.name,
-            specialization: userData.specialization
+            specialization: userData.specialization,
+            consultation_fee: userData.consultationFee ?? null
         })
         .eq('id', user.id);
 

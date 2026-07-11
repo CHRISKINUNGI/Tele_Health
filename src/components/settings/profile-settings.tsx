@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Loader2, Save, GraduationCap } from 'lucide-react';
+import { User, Loader2, Save, GraduationCap, Banknote } from 'lucide-react';
 import { updateUserProfile } from '@/lib/actions/user';
 import { toast } from 'sonner';
 
@@ -14,6 +14,7 @@ interface ProfileSettingsProps {
         name: string;
         role: string;
         specialization?: string;
+        consultation_fee?: number | null;
     };
 }
 
@@ -21,15 +22,20 @@ export function ProfileSettings({ initialData }: ProfileSettingsProps) {
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState(initialData.name);
     const [specialization, setSpecialization] = useState(initialData.specialization || '');
+    const [consultationFee, setConsultationFee] = useState(
+        initialData.consultation_fee != null ? String(initialData.consultation_fee) : ''
+    );
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            const isDoctor = initialData.role === 'doctor';
             await updateUserProfile({
                 name,
-                specialization: initialData.role === 'doctor' ? specialization : undefined
+                specialization: isDoctor ? specialization : undefined,
+                consultationFee: isDoctor && consultationFee.trim() !== '' ? Number(consultationFee) : null
             });
             toast.success('Profile updated successfully');
         } catch (error: any) {
@@ -77,6 +83,28 @@ export function ProfileSettings({ initialData }: ProfileSettingsProps) {
                                     className="pl-9 bg-white"
                                 />
                             </div>
+                        </div>
+                    )}
+
+                    {initialData.role === 'doctor' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="fee">Consultation Fee (Ksh)</Label>
+                            <div className="relative">
+                                <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    id="fee"
+                                    type="number"
+                                    min={0}
+                                    step={100}
+                                    value={consultationFee}
+                                    onChange={(e) => setConsultationFee(e.target.value)}
+                                    placeholder="e.g. 2500"
+                                    className="pl-9 bg-white"
+                                />
+                            </div>
+                            <p className="text-xs text-gray-400">
+                                Shown to patients when they choose a doctor. Leave blank for “fee on request”.
+                            </p>
                         </div>
                     )}
 
