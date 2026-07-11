@@ -195,3 +195,26 @@ export type NotificationType =
     | 'document_uploaded'
     | 'note_available'
     | 'prescription_ready';
+
+// ============================================
+// BILLING / INVOICE TYPES
+// ============================================
+
+export type InvoiceStatus = 'unpaid' | 'paid';
+
+export interface Invoice {
+    id: string;
+    patient_id: string;
+    doctor_id: string;
+    appointment_id?: string | null;
+    /** Amount in KES (Ksh). */
+    amount: number;
+    status: InvoiceStatus;
+    description?: string | null;
+    created_by?: string | null;
+    paid_at?: string | null;
+    created_at: string;
+    // Joined data
+    patient?: Profile;
+    doctor?: Profile;
+}
