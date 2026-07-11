@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { scheduleAppointment, getDoctorProfiles } from '@/lib/actions/appointments';
+import { formatKes } from '@/lib/utils/currency';
 import { toast } from 'sonner';
 
 interface BookAppointmentDialogProps {
@@ -120,9 +121,13 @@ export function BookAppointmentDialog({
                                         <SelectItem key={doc.id} value={doc.id}>
                                             <div className="flex flex-col">
                                                 <span className="font-medium">Dr. {doc.name}</span>
-                                                {doc.specialization && (
-                                                    <span className="text-xs text-muted-foreground">{doc.specialization}</span>
-                                                )}
+                                                <span className="text-xs text-muted-foreground">
+                                                    {doc.specialization || 'General Practice'}
+                                                    <span className="mx-1.5 text-muted-foreground/50">•</span>
+                                                    <span className="text-emerald-600 font-medium">
+                                                        {formatKes(doc.consultation_fee)}
+                                                    </span>
+                                                </span>
                                             </div>
                                         </SelectItem>
                                     ))

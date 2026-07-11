@@ -31,6 +31,7 @@ export function CreateUserDialog() {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState<'doctor' | 'patient' | 'admin'>('patient');
     const [specialization, setSpecialization] = useState('');
+    const [consultationFee, setConsultationFee] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,7 +42,8 @@ export function CreateUserDialog() {
                 name,
                 email,
                 role,
-                specialization: role === 'doctor' ? specialization : undefined
+                specialization: role === 'doctor' ? specialization : undefined,
+                consultationFee: role === 'doctor' && consultationFee.trim() !== '' ? Number(consultationFee) : null
             });
 
             toast.success('User created successfully. A temporary password (ChangeMe123!) has been set.');
@@ -60,6 +62,7 @@ export function CreateUserDialog() {
         setEmail('');
         setRole('patient');
         setSpecialization('');
+        setConsultationFee('');
     };
 
     return (
@@ -130,6 +133,17 @@ export function CreateUserDialog() {
                                 value={specialization}
                                 onChange={(e) => setSpecialization(e.target.value)}
                                 required
+                                className="bg-gray-50/50"
+                            />
+                            <Label htmlFor="fee">Consultation Fee (Ksh)</Label>
+                            <Input
+                                id="fee"
+                                type="number"
+                                min={0}
+                                step={100}
+                                placeholder="e.g. 2500 (optional)"
+                                value={consultationFee}
+                                onChange={(e) => setConsultationFee(e.target.value)}
                                 className="bg-gray-50/50"
                             />
                         </div>

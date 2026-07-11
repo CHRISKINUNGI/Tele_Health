@@ -23,6 +23,8 @@ export interface Profile {
     role: UserRole;
     name: string;
     specialization?: string;
+    /** Doctor consultation fee in KES (Ksh). Null/undefined means "fee on request". */
+    consultation_fee?: number | null;
     created_at: string;
 }
 

@@ -52,6 +52,7 @@ export async function createSystemUser(userData: {
     email: string;
     role: 'doctor' | 'patient' | 'admin';
     specialization?: string;
+    consultationFee?: number | null;
 }) {
     const adminSupabase = createAdminClient();
 
@@ -77,7 +78,8 @@ export async function createSystemUser(userData: {
             id: authUser.user.id,
             name: userData.name,
             role: userData.role,
-            specialization: userData.specialization || null
+            specialization: userData.specialization || null,
+            consultation_fee: userData.role === 'doctor' ? (userData.consultationFee ?? null) : null
         });
 
     if (profileError) {
