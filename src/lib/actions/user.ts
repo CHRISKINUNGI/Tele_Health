@@ -2,6 +2,7 @@
 
 import { createClient } from '../supabase/server';
 import { revalidatePath } from 'next/cache';
+import type { WeeklyAvailability } from '../types';
 
 /**
  * Update the user's profile information
@@ -28,6 +29,29 @@ export async function updateUserProfile(userData: {
     if (error) {
         console.error('Error updating user profile:', error);
         throw new Error('Failed to update profile');
+    }
+
+    revalidatePath('/settings');
+    return { success: true };
+}
+
+/**
+ * Update the doctor's weekly availability schedule.
+ */
+export async function updateDoctorAvailability(availability: WeeklyAvailability) {
+    const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error('Unauthorized');
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ availability })
+        .eq('id', user.id);
+
+    if (error) {
+        console.error('Error updating availability:', error);
+        throw new Error('Failed to update availability');
     }
 
     revalidatePath('/settings');

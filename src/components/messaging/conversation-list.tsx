@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import type { Conversation } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 
 interface ConversationListProps {
     conversations: Conversation[];
@@ -89,7 +90,7 @@ export function ConversationList({
 
                                     <p className="text-sm text-muted-foreground">
                                         {otherParticipant?.role === 'doctor'
-                                            ? `Dr. ${otherParticipant.name} • ${(otherParticipant as any).specialization || 'General Practice'}`
+                                            ? `${formatDoctorName(otherParticipant.name)} • ${(otherParticipant as any).specialization || 'General Practice'}`
                                             : 'Patient'
                                         }
                                     </p>

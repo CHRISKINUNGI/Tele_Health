@@ -9,6 +9,7 @@ import { MessageSquare, Calendar as CalendarIcon, Clock, User } from 'lucide-rea
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getOrCreateConversation } from '@/lib/actions/messages';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import { BookAppointmentDialog } from './book-appointment-dialog';
 
 interface PatientAppointmentsClientProps {
@@ -97,7 +98,7 @@ export function PatientAppointmentsClient({ patientId }: PatientAppointmentsClie
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900">
-                                                Dr. {apt.doctor?.name || 'Assigned Provider'}
+                                                {formatDoctorName(apt.doctor?.name)}
                                             </h3>
                                             <p className="text-sm text-gray-500">{apt.doctor?.specialization || 'Telehealth Specialist'}</p>
                                             <div className="flex items-center gap-3 mt-2">

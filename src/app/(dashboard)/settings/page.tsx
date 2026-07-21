@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSettings } from '@/components/settings/profile-settings';
 import { SecuritySettings } from '@/components/settings/security-settings';
+import { AvailabilitySettings } from '@/components/settings/availability-settings';
 import { User, Shield, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -70,8 +71,11 @@ export default function SettingsPage() {
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="profile" className="outline-none">
+                <TabsContent value="profile" className="outline-none space-y-8">
                     <ProfileSettings initialData={profile} />
+                    {profile?.role === 'doctor' && (
+                        <AvailabilitySettings initialAvailability={profile?.availability} />
+                    )}
                 </TabsContent>
 
                 <TabsContent value="security" className="outline-none">

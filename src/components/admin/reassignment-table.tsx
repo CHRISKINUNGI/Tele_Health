@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import { ReassignDialog } from './reassign-dialog';
 import type { QueueEntry } from '@/lib/types';
 
@@ -75,7 +76,7 @@ export function ReassignmentTable({ flaggedEntries, onReassign }: ReassignmentTa
                                         <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">
                                             {doctor.charAt(0)}
                                         </div>
-                                        <span>Dr. {doctor}</span>
+                                        <span>{formatDoctorName(doctor)}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-center">

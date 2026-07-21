@@ -7,6 +7,7 @@ import { Receipt, Loader2, Download, CreditCard } from 'lucide-react';
 import { getPatientInvoices, payInvoice } from '@/lib/actions/invoices';
 import { formatKes } from '@/lib/utils/currency';
 import { downloadInvoice } from '@/lib/utils/invoice-document';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Invoice } from '@/lib/types';
@@ -94,7 +95,7 @@ export function PatientInvoicesClient({ patientId }: PatientInvoicesClientProps)
                                     {invoice.description || 'Consultation'}
                                 </p>
                                 <p className="text-sm text-gray-500 truncate">
-                                    Dr. {invoice.doctor?.name || 'Provider'}
+                                    {formatDoctorName(invoice.doctor?.name)}
                                     {invoice.doctor?.specialization && (
                                         <>
                                             <span className="mx-1.5 text-gray-300">•</span>

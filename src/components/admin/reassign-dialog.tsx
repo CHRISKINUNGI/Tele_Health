@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Users, ChevronRight, Loader2 } from 'lucide-react';
 import { getDoctorProfiles } from '@/lib/actions/appointments';
 import { getDoctorQueue } from '@/lib/actions/queue';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 
 interface ReassignDialogProps {
     open: boolean;
@@ -104,7 +105,7 @@ export function ReassignDialog({
                                             {doctor.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-900">Dr. {doctor.name}</p>
+                                            <p className="font-bold text-gray-900">{formatDoctorName(doctor.name)}</p>
                                             <p className="text-xs text-gray-500">{doctor.specialization}</p>
                                         </div>
                                     </div>

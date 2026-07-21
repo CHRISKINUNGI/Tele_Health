@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import { Users, User, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface DoctorLoad {
@@ -29,7 +30,7 @@ export function DoctorLoadGrid({ loads }: DoctorLoadGridProps) {
                                     {doctor.name.charAt(0)}
                                 </div>
                                 <CardTitle className="text-sm font-bold">
-                                    Dr. {doctor.name}
+                                    {formatDoctorName(doctor.name)}
                                 </CardTitle>
                             </div>
                             <Badge
