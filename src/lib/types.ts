@@ -18,6 +18,15 @@ export type QueueStage =
     | 'in_consultation'
     | 'completed';
 
+export interface DaySchedule {
+    enabled: boolean;
+    start: number;
+    end: number;
+}
+
+/** Doctor weekly schedule keyed by weekday: '0' = Sunday … '6' = Saturday. */
+export type WeeklyAvailability = Record<string, DaySchedule>;
+
 export interface Profile {
     id: string;
     role: UserRole;
@@ -25,6 +34,8 @@ export interface Profile {
     specialization?: string;
     /** Doctor consultation fee in KES (Ksh). Null/undefined means "fee on request". */
     consultation_fee?: number | null;
+    /** Doctor weekly availability. Null/undefined means default clinic hours. */
+    availability?: WeeklyAvailability | null;
     created_at: string;
 }
 

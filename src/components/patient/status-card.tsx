@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getOrCreateConversation } from '@/lib/actions/messages';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import { useState } from 'react';
 import type { Appointment } from '@/lib/types';
 
@@ -82,7 +83,7 @@ export function StatusCard({ appointment, estimatedWaitMinutes, patientId }: Sta
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Attending Physician</p>
                             <p className="font-bold text-gray-900 truncate">
-                                Dr. {(appointment.doctor as any)?.name || 'Assigned'}
+                                {formatDoctorName((appointment.doctor as any)?.name)}
                             </p>
                         </div>
                         <Button

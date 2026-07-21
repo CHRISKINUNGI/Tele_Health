@@ -23,9 +23,11 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, Plus } from 'lucide-react';
 import { scheduleAppointment, getDoctorProfiles, getDoctorBookedSlots } from '@/lib/actions/appointments';
 import { formatKes } from '@/lib/utils/currency';
-import { generateDaySlots, isClinicClosed, isPast } from '@/lib/utils/availability';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
+import { generateDaySlots, isDayOpen, isPast, nextOpenDay } from '@/lib/utils/availability';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import type { WeeklyAvailability } from '@/lib/types';
 
 interface BookAppointmentDialogProps {
     patientId: string;
@@ -43,8 +45,11 @@ export function BookAppointmentDialog({
     // Form State
     const [doctorId, setDoctorId] = useState('');
     const [type, setType] = useState<'virtual' | 'in_person'>('virtual');
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [date, setDate] = useState<Date | undefined>(() => nextOpenDay(new Date()));
     const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
+
+    const selectedDoctor = doctors.find((d) => d.id === doctorId);
+    const doctorAvailability = (selectedDoctor?.availability ?? undefined) as WeeklyAvailability | undefined;
 
     // Availability
     const [bookedHours, setBookedHours] = useState<Set<number>>(new Set());
@@ -89,7 +94,15 @@ export function BookAppointmentDialog({
         loadAvailability();
     }, [loadAvailability]);
 
-    const slots = date ? generateDaySlots(date) : [];
+    // If the picked date is a day the selected doctor is off, jump to their next open day.
+    useEffect(() => {
+        if (doctorId && date && !isDayOpen(date, doctorAvailability)) {
+            setDate(nextOpenDay(date, doctorAvailability));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [doctorId]);
+
+    const slots = date ? generateDaySlots(date, doctorAvailability) : [];
 
     const handleBook = async () => {
         if (!doctorId) {
@@ -146,7 +159,7 @@ export function BookAppointmentDialog({
                                     doctors.map((doc) => (
                                         <SelectItem key={doc.id} value={doc.id}>
                                             <div className="flex flex-col">
-                                                <span className="font-medium">Dr. {doc.name}</span>
+                                                <span className="font-medium">{formatDoctorName(doc.name)}</span>
                                                 <span className="text-xs text-muted-foreground">
                                                     {doc.specialization || 'General Practice'}
                                                     <span className="mx-1.5 text-muted-foreground/50">•</span>
@@ -197,7 +210,8 @@ export function BookAppointmentDialog({
                                     selected={date}
                                     onSelect={setDate}
                                     disabled={(d) =>
-                                        d < new Date(new Date().setHours(0, 0, 0, 0)) || isClinicClosed(d)
+                                        d < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                                        !isDayOpen(d, doctorAvailability)
                                     }
                                     initialFocus
                                 />
@@ -229,7 +243,7 @@ export function BookAppointmentDialog({
                             </div>
                         ) : slots.length === 0 ? (
                             <p className="text-sm text-muted-foreground py-4 text-center">
-                                The clinic is closed on this day. Please pick another date.
+                                {formatDoctorName(selectedDoctor?.name)} is not available on this day. Please pick another date.
                             </p>
                         ) : (
                             <div className="grid grid-cols-3 gap-2">

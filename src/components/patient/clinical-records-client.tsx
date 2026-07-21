@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { DocumentList } from '@/components/shared/document-list';
 import { FileText, Calendar, User, Activity } from 'lucide-react';
+import { formatDoctorName } from '@/lib/utils/doctor-name';
 import type { ClinicalNote } from '@/lib/types';
 
 interface ClinicalRecordsClientProps {
@@ -67,7 +68,7 @@ export function ClinicalRecordsClient({ patientId }: ClinicalRecordsClientProps)
                                             </div>
                                             <div>
                                                 <CardTitle className="text-lg">
-                                                    Visit with Dr. {note.doctor?.name || 'Assigned Physician'}
+                                                    Visit with {formatDoctorName(note.doctor?.name)}
                                                 </CardTitle>
                                                 <p className="text-xs text-gray-500">
                                                     {new Date(note.created_at).toLocaleDateString('en-US', {
