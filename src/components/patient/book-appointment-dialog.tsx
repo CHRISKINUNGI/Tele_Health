@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -9,7 +9,6 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -22,9 +21,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2, Plus } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { scheduleAppointment, getDoctorProfiles } from '@/lib/actions/appointments';
+import { scheduleAppointment, getDoctorProfiles, getDoctorBookedSlots } from '@/lib/actions/appointments';
 import { formatKes } from '@/lib/utils/currency';
+import { generateDaySlots, isClinicClosed, isPast } from '@/lib/utils/availability';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface BookAppointmentDialogProps {
@@ -44,7 +44,11 @@ export function BookAppointmentDialog({
     const [doctorId, setDoctorId] = useState('');
     const [type, setType] = useState<'virtual' | 'in_person'>('virtual');
     const [date, setDate] = useState<Date | undefined>(new Date());
-    const [time, setTime] = useState('09:00');
+    const [selectedSlotIso, setSelectedSlotIso] = useState<string | null>(null);
+
+    // Availability
+    const [bookedHours, setBookedHours] = useState<Set<number>>(new Set());
+    const [slotsLoading, setSlotsLoading] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -54,43 +58,65 @@ export function BookAppointmentDialog({
 
     const loadDoctors = async () => {
         try {
-            console.log('Loading doctors for booking...');
             const data = await getDoctorProfiles();
-            console.log('Doctors loaded:', data?.length || 0);
             setDoctors(data || []);
         } catch (error) {
             console.error('Error loading doctors:', error);
-            toast.error("Could not load provider list");
+            toast.error('Could not load provider list');
         }
     };
 
-    const handleBook = async () => {
+    // Whenever the doctor or date changes, refresh which slots are occupied.
+    const loadAvailability = useCallback(async () => {
         if (!doctorId || !date) {
-            toast.error("Please select a doctor and date");
+            setBookedHours(new Set());
+            return;
+        }
+        setSlotsLoading(true);
+        setSelectedSlotIso(null);
+        try {
+            const booked = await getDoctorBookedSlots(doctorId, date.toISOString());
+            setBookedHours(new Set(booked.map((iso) => new Date(iso).getHours())));
+        } catch (error) {
+            console.error('Error loading availability:', error);
+            setBookedHours(new Set());
+        } finally {
+            setSlotsLoading(false);
+        }
+    }, [doctorId, date]);
+
+    useEffect(() => {
+        loadAvailability();
+    }, [loadAvailability]);
+
+    const slots = date ? generateDaySlots(date) : [];
+
+    const handleBook = async () => {
+        if (!doctorId) {
+            toast.error('Please select a doctor');
+            return;
+        }
+        if (!selectedSlotIso) {
+            toast.error('Please pick an available time slot');
             return;
         }
 
         setLoading(true);
         try {
-            // Combine date and time
-            const [hours, minutes] = time.split(':');
-            const scheduledTime = new Date(date);
-            scheduledTime.setHours(parseInt(hours), parseInt(minutes));
-
             await scheduleAppointment({
                 patientId,
                 doctorId,
                 type,
-                scheduledTime: scheduledTime.toISOString(),
-                priorityScore: 0 // Default priority
+                scheduledTime: selectedSlotIso,
+                priorityScore: 0,
             });
 
-            toast.success("Appointment booked successfully");
+            toast.success('Appointment booked successfully');
             setOpen(false);
             if (onAppointmentBooked) onAppointmentBooked();
         } catch (error) {
             console.error('Error booking appointment:', error);
-            toast.error("Failed to book appointment");
+            toast.error('Failed to book appointment');
         } finally {
             setLoading(false);
         }
@@ -104,7 +130,7 @@ export function BookAppointmentDialog({
                     Book New Visit
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>Book a New Appointment</DialogTitle>
                 </DialogHeader>
@@ -153,43 +179,94 @@ export function BookAppointmentDialog({
                         </Select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Date</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant={"outline"}
-                                        className={"w-full justify-start text-left font-normal"}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                        mode="single"
-                                        selected={date}
-                                        onSelect={setDate}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                    <div className="space-y-2">
+                        <Label>Date</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={'outline'}
+                                    className={'w-full justify-start text-left font-normal'}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    onSelect={setDate}
+                                    disabled={(d) =>
+                                        d < new Date(new Date().setHours(0, 0, 0, 0)) || isClinicClosed(d)
+                                    }
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    {/* Availability slot picker */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label>Available Times</Label>
+                            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Free
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span className="h-2 w-2 rounded-full bg-gray-300" /> Occupied
+                                </span>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Time</Label>
-                            <Input
-                                type="time"
-                                value={time}
-                                onChange={(e) => setTime(e.target.value)}
-                            />
-                        </div>
+
+                        {!doctorId ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">
+                                Select a doctor to see their availability.
+                            </p>
+                        ) : slotsLoading ? (
+                            <div className="py-6 text-center">
+                                <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-400" />
+                            </div>
+                        ) : slots.length === 0 ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">
+                                The clinic is closed on this day. Please pick another date.
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-3 gap-2">
+                                {slots.map((slot) => {
+                                    const iso = slot.toISOString();
+                                    const occupied = bookedHours.has(slot.getHours());
+                                    const past = isPast(slot);
+                                    const disabled = occupied || past;
+                                    const selected = selectedSlotIso === iso;
+                                    return (
+                                        <button
+                                            key={iso}
+                                            type="button"
+                                            disabled={disabled}
+                                            onClick={() => setSelectedSlotIso(iso)}
+                                            className={cn(
+                                                'rounded-lg border py-2 text-sm font-medium transition-colors',
+                                                selected && 'border-blue-600 bg-blue-600 text-white',
+                                                !selected && !disabled &&
+                                                    'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-400',
+                                                disabled &&
+                                                    'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed line-through'
+                                            )}
+                                            title={occupied ? 'Occupied' : past ? 'Past' : 'Available'}
+                                        >
+                                            {format(slot, 'HH:mm')}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     <Button
                         className="w-full bg-blue-600 hover:bg-blue-700"
                         onClick={handleBook}
-                        disabled={loading}
+                        disabled={loading || !selectedSlotIso}
                     >
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Confirm Booking

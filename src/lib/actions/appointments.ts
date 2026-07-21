@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '../supabase/server';
+import { createAdminClient } from '../supabase/admin';
 import { revalidatePath } from 'next/cache';
 import type { AppointmentStatus, AppointmentType } from '../types';
 
@@ -165,6 +166,37 @@ export async function getDoctorProfiles() {
     }
 
     return data;
+}
+
+/**
+ * Get the times a doctor is already booked on a given day.
+ *
+ * Returns ONLY the occupied slot start-times (ISO strings) so a patient can see
+ * free vs occupied slots — no patient identity is exposed. Uses the admin client
+ * because appointment RLS would otherwise hide other patients' bookings.
+ */
+export async function getDoctorBookedSlots(doctorId: string, dateIso: string): Promise<string[]> {
+    const admin = createAdminClient();
+
+    const dayStart = new Date(dateIso);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const { data, error } = await admin
+        .from('appointments')
+        .select('scheduled_time')
+        .eq('doctor_id', doctorId)
+        .neq('status', 'cancelled')
+        .gte('scheduled_time', dayStart.toISOString())
+        .lt('scheduled_time', dayEnd.toISOString());
+
+    if (error) {
+        console.error('Error fetching booked slots:', error);
+        return [];
+    }
+
+    return (data || []).map((a) => a.scheduled_time as string);
 }
 
 /**
