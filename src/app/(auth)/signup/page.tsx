@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import Link from 'next/link';
 import { PasswordInput } from '@/components/ui/password-input';
+import { AuthHero } from '@/components/auth/auth-hero';
 
 export default function SignUpPage() {
     const [name, setName] = useState('');
@@ -69,7 +70,9 @@ export default function SignUpPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen flex">
+            <AuthHero />
+            <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-purple-50">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-bold text-blue-600">
@@ -164,6 +167,7 @@ export default function SignUpPage() {
                     </form>
                 </CardContent>
             </Card>
+            </div>
         </div>
     );
 }
