@@ -169,6 +169,35 @@ export async function getDoctorProfiles() {
 }
 
 /**
+ * Get a doctor's upcoming appointments (today onward), ordered by time.
+ * Used for the provider Schedule view.
+ */
+export async function getDoctorSchedule(doctorId: string) {
+    const supabase = await createClient();
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+      *,
+      patient:profiles!appointments_patient_id_fkey(id, name)
+    `)
+        .eq('doctor_id', doctorId)
+        .neq('status', 'cancelled')
+        .gte('scheduled_time', start.toISOString())
+        .order('scheduled_time', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching doctor schedule:', error);
+        throw new Error('Failed to fetch schedule');
+    }
+
+    return data;
+}
+
+/**
  * Get the times a doctor is already booked on a given day.
  *
  * Returns ONLY the occupied slot start-times (ISO strings) so a patient can see
