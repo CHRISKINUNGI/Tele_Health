@@ -9,6 +9,7 @@ import { Alert } from '@/components/ui/alert';
 import Link from 'next/link';
 import { PasswordInput } from '@/components/ui/password-input';
 import { AuthHero } from '@/components/auth/auth-hero';
+import { registerPatient } from '@/lib/actions/auth';
 
 export default function SignUpPage() {
     const [name, setName] = useState('');
@@ -42,28 +43,25 @@ export default function SignUpPage() {
 
         setLoading(true);
         try {
-            // The profile trigger reads `name` from metadata and defaults role to 'patient'.
-            const { data, error: signUpError } = await supabase.auth.signUp({
-                email,
+            // Create the (confirmed) patient account server-side — no confirmation
+            // email, so no email rate limit — then sign in immediately.
+            await registerPatient({ name, email, password });
+
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email.trim().toLowerCase(),
                 password,
-                options: { data: { name: name.trim() } },
             });
 
-            if (signUpError) {
-                setError(signUpError.message);
+            if (signInError) {
+                // Account was created but auto sign-in failed; send them to login.
+                setSuccess('Account created! Please sign in.');
                 return;
             }
 
-            if (data.session) {
-                // Email confirmation disabled — user is signed in immediately.
-                router.push('/');
-                router.refresh();
-            } else {
-                // Email confirmation required.
-                setSuccess('Account created! Check your email to confirm, then sign in.');
-            }
-        } catch (err) {
-            setError('An unexpected error occurred');
+            router.push('/');
+            router.refresh();
+        } catch (err: any) {
+            setError(err?.message || 'An unexpected error occurred');
         } finally {
             setLoading(false);
         }
